@@ -1,4 +1,4 @@
-# 2021-01-08
+# 2021-01-08 V1.1
 from tkinter.messagebox import showinfo
 
 from PIL import Image
