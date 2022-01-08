@@ -1,4 +1,4 @@
-# 2021-01-08 V1.2
+# 2021-01-08 V1.3
 from tkinter.messagebox import showinfo
 
 from PIL import Image
@@ -24,7 +24,7 @@ class MainApplication(tk.Frame):
         self.style_Table = ttk.Style()
         self.style_Table.configure("Treeview",
                                    font=(None, 10),
-                                   background="silver",
+                                   background="gray99",
                                    foreground="black",
                                    rowheight=20,
                                    fieldbackground="silver")
@@ -36,6 +36,7 @@ class MainApplication(tk.Frame):
         path_onedrive_folder = self.sh_settings['B2'].value
         self.frame_Top_Main = tk.Frame(root)
         self.frame_Top_Main.pack(fill='x')
+
         self.lbl_Title = tk.Label(self.frame_Top_Main, text="Pictures to Onedrive", bg='yellow', font=font_main)
         self.lbl_Title.grid(row=1, column=0)
         # FRAME FOLDER WITH IMAGES
@@ -66,6 +67,29 @@ class MainApplication(tk.Frame):
                                              font=font_main)
         self.btn_Onedrive_Folder.grid(row=0, column=1)
 
+        # STATISTIC
+        self.frame_Top_Count = ttk.LabelFrame(root, text='Statistic data')
+        self.frame_Top_Count.pack(fill='x')
+
+        self.lbl_jpg = ttk.Label(self.frame_Top_Count, text='JPG')
+        self.lbl_jpg.grid(row=0, column=0)
+        self.lbl_jpg_e = ttk.Label(self.frame_Top_Count,
+                                   text=self.files_counter(self.txt_Folder.get(), ('jpg', 'JPG', 'jpeg', 'JPEG')))
+        self.lbl_jpg_e.grid(row=1, column=0)
+
+        self.lbl_png = ttk.Label(self.frame_Top_Count, text='PNG')
+        self.lbl_png.grid(row=0, column=1)
+        self.lbl_png_e = ttk.Label(self.frame_Top_Count,
+                                   text=self.files_counter(self.txt_Folder.get(), ('png', 'PNG')))
+        self.lbl_png_e.grid(row=1, column=1)
+
+        self.lbl_raw = ttk.Label(self.frame_Top_Count, text='RAW')
+        self.lbl_raw.grid(row=0, column=2)
+        self.lbl_raw_e = ttk.Label(self.frame_Top_Count,
+                                   text=self.files_counter(self.txt_Folder.get(), ('RW2', 'NEF')))
+        self.lbl_raw_e.grid(row=1, column=2)
+
+        # TABLE Treeview
         self.table_Files = ttk.Treeview(root, height=40)
         self.table_Files['columns'] = ('No', 'Name of file', 'Width x Height', 'Compression level', 'File size')
         self.table_Files.column("#0", width=0, stretch=False)
@@ -265,5 +289,5 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.title('Pictures to Onedrive')
     MainApplication(root).pack(side="top", fill="both", expand=True)
-    root.geometry('1000x1200')
+    root.geometry('900x1000')
     root.mainloop()
