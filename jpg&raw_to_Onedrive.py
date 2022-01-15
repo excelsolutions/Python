@@ -90,7 +90,11 @@ class MainApplication(tk.Frame):
         self.lbl_raw_e.grid(row=1, column=2)
 
         # TABLE Treeview
-        self.table_Files = ttk.Treeview(root, height=40)
+        # scrollbar
+        self.scroll_y = ttk.Scrollbar(root)
+        self.scroll_y.pack(side='right', fill='y')
+        self.table_Files = ttk.Treeview(root, height=40, yscrollcommand=self.scroll_y.set)
+        self.scroll_y.config(command=self.table_Files.yview)
         self.table_Files['columns'] = ('No', 'Name of file', 'Width x Height', 'Compression level', 'File size')
         self.table_Files.column("#0", width=0, stretch=False)
         self.table_Files.column("No", width=10)
