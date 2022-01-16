@@ -2,7 +2,7 @@
 # 2021-01-08 V1.4
 from tkinter.messagebox import showinfo
 
-from PIL import Image
+from PIL import Image, ImageTk
 import PIL
 import os
 import glob
@@ -125,7 +125,7 @@ class MainApplication(tk.Frame):
 
         # Picture preview
         self.preview_Label = ttk.Label(self.frame_Main_Right)
-        self.preview_Label.pack(side='bottom')
+        self.preview_Label.pack(fill='x', side='bottom')
 
     def pick_folder_onedrive(self):
         file_path = os.getcwd()
@@ -183,7 +183,16 @@ class MainApplication(tk.Frame):
         for selected_item in self.table_Files.selection():
             item = self.table_Files.item(selected_item)
             record = item['values']
-            showinfo(title='Information', message=record[1])
+            # showinfo(title='Information', message=record[1])
+            print(record[1])
+        img_path = os.path.join(self.txt_Folder.get(), str(record[1]))
+        image_resized = Image.open(img_path)
+        image_resized = image_resized.resize((200, 100), Image.ANTIALIAS)
+        img = ImageTk.PhotoImage(image_resized)
+        self.preview_Label.config(image=img, text=str(record[1]))
+        # self.canvas = tk.Canvas(self.frame_Main_Right, width=300, height=300)
+        # self.canvas.pack()
+        # self.canvas.create_image(20, 20, anchor='nw', image=img)
 
 
 def compress_images(directory=False, quality=30):
