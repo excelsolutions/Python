@@ -35,16 +35,17 @@ class MainApplication(tk.Frame):
         self.sh_settings = self.wb['settings']
         path_folder = self.sh_settings['B1'].value
         path_onedrive_folder = self.sh_settings['B2'].value
-        self.frame_Main = tk.Frame(root)
-        self.frame_Main.pack(fill='x', side='Left')
-
-        self.frame_Top_Main = tk.Frame(root)
+        self.frame_Main_Left = tk.Frame(root)
+        self.frame_Main_Left.pack(side='left')
+        self.frame_Main_Right = tk.Frame(root)
+        self.frame_Main_Right.pack(side='right')
+        self.frame_Top_Main = tk.Frame(self.frame_Main_Left)
         self.frame_Top_Main.pack(fill='x')
 
         self.lbl_Title = tk.Label(self.frame_Top_Main, text="Pictures to Onedrive", bg='yellow', font=font_main)
         self.lbl_Title.grid(row=1, column=0)
         # FRAME FOLDER WITH IMAGES
-        self.frame_Folder = ttk.LabelFrame(root, text="Folder with images")
+        self.frame_Folder = ttk.LabelFrame(self.frame_Main_Left, text="Folder with images")
         self.frame_Folder.pack(fill='x')
         self.txt_Folder = tk.Entry(self.frame_Folder, font=font_main, width=60)
         self.txt_Folder.grid(row=0, column=0)
@@ -60,7 +61,7 @@ class MainApplication(tk.Frame):
         self.btn_Folder = tk.Button(self.frame_Folder, text='Run', command=self.proceed_Files, font=font_main)
         self.btn_Folder.grid(row=0, column=2)
         # FRAME ONEDRIVE FOLDER
-        self.frame_Onedrive_Folder = ttk.LabelFrame(root, text="Path to Onedrive folder")
+        self.frame_Onedrive_Folder = ttk.LabelFrame(self.frame_Main_Left, text="Path to Onedrive folder")
         self.frame_Onedrive_Folder.pack(fill='x')
         self.txt_Onedrive_Folder = tk.Entry(self.frame_Onedrive_Folder, font=font_main, width=60)
         self.txt_Onedrive_Folder.grid(row=0, column=0)
@@ -72,7 +73,7 @@ class MainApplication(tk.Frame):
         self.btn_Onedrive_Folder.grid(row=0, column=1)
 
         # STATISTIC
-        self.frame_Top_Count = ttk.LabelFrame(root, text='Statistic data')
+        self.frame_Top_Count = ttk.LabelFrame(self.frame_Main_Left, text='Statistic data')
         self.frame_Top_Count.pack(fill='x')
 
         self.lbl_jpg = ttk.Label(self.frame_Top_Count, text='JPG')
@@ -95,9 +96,9 @@ class MainApplication(tk.Frame):
 
         # TABLE Treeview
         # scrollbar
-        self.scroll_y = ttk.Scrollbar(root)
+        self.scroll_y = ttk.Scrollbar(self.frame_Main_Left)
         self.scroll_y.pack(side='right', fill='y')
-        self.table_Files = ttk.Treeview(root, height=40, yscrollcommand=self.scroll_y.set)
+        self.table_Files = ttk.Treeview(self.frame_Main_Left, height=40, yscrollcommand=self.scroll_y.set)
         self.scroll_y.config(command=self.table_Files.yview)
         self.table_Files['columns'] = ('No', 'Name of file', 'Width x Height', 'Compression level', 'File size')
         self.table_Files.column("#0", width=0, stretch=False)
@@ -121,6 +122,10 @@ class MainApplication(tk.Frame):
                 self.load_images(self.txt_Folder.get())
         except:
             showinfo(title='Information', message='Problem')
+
+        # Picture preview
+        self.preview_Label = ttk.Label(self.frame_Main_Right)
+        self.preview_Label.pack(side='bottom')
 
     def pick_folder_onedrive(self):
         file_path = os.getcwd()
