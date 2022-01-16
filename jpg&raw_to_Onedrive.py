@@ -1,3 +1,4 @@
+# 2021-01-16 moving all widgets to frame
 # 2021-01-08 V1.4
 from tkinter.messagebox import showinfo
 
@@ -19,7 +20,7 @@ class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
-
+        # Style
         font_main = ("Courier", 14)
         self.style_Table = ttk.Style()
         self.style_Table.configure("Treeview",
@@ -34,6 +35,9 @@ class MainApplication(tk.Frame):
         self.sh_settings = self.wb['settings']
         path_folder = self.sh_settings['B1'].value
         path_onedrive_folder = self.sh_settings['B2'].value
+        self.frame_Main = tk.Frame(root)
+        self.frame_Main.pack(fill='x', side='Left')
+
         self.frame_Top_Main = tk.Frame(root)
         self.frame_Top_Main.pack(fill='x')
 
