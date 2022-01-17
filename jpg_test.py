@@ -22,7 +22,7 @@ img_path = os.path.join(r'C:\Users\lukas\Pictures/', r'towar.jpg')
 image_resized = Image.open(img_path)
 image_resized = image_resized.resize((200, 100), Image.ANTIALIAS)
 img = ImageTk.PhotoImage(image_resized)
-img = tk.PhotoImage(file=img_path)
+# img = tk.PhotoImage(file=img_path)
 label1 = tk.Label(root, image=img)
 label1.pack()
 
