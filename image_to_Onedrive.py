@@ -14,6 +14,7 @@ from openpyxl.workbook import Workbook
 from openpyxl import load_workbook
 import tkinter.ttk as ttk
 from tkinter import filedialog
+import shutil  # to files copy
 
 
 class MainApplication(tk.Frame):
@@ -35,10 +36,12 @@ class MainApplication(tk.Frame):
         self.sh_settings = self.wb['settings']
         path_folder = self.sh_settings['B1'].value
         path_onedrive_folder = self.sh_settings['B2'].value
+
+        # MAIN FRAMES
         self.frame_Main_Left = tk.Frame(root)
-        self.frame_Main_Left.pack(side='left')
+        self.frame_Main_Left.pack(side='left', anchor='ne')
         self.frame_Main_Right = tk.Frame(root)
-        self.frame_Main_Right.pack(side='right', anchor='s')
+        self.frame_Main_Right.pack(side='right', fill='both')
         self.frame_Top_Main = tk.Frame(self.frame_Main_Left)
         self.frame_Top_Main.pack(fill='x')
 
@@ -117,14 +120,37 @@ class MainApplication(tk.Frame):
 
         self.table_Files.pack(fill='x')
         self.table_Files.bind('<<TreeviewSelect>>', self.item_selected)
+
         try:
             if self.txt_Folder.get():
                 self.load_images(self.txt_Folder.get())
         except:
             showinfo(title='Information', message='Problem')
 
+        # FRAME ACTIONS
+        '''
+        |----------|
+        |       OOO|
+        |          |
+        |----------|
+        '''
+        self.action_Frame = tk.LabelFrame(self.frame_Main_Right, text="Features")
+        self.action_Frame.pack(fill='both', side='top', anchor='nw')
+        self.lbl_Prefix = tk.Label(self.action_Frame, text='Prefix added to filename')
+        self.lbl_Prefix.grid(row=0, column=0)
+        self.txt_Prefix = tk.Entry(self.action_Frame, font=font_main, width=20)
+        self.txt_Prefix.grid(row=1, column=0)
+
         # Picture preview
-        self.preview_Label = ttk.Label(self.frame_Main_Right)
+        '''
+        |----------|
+        |          |
+        |       OOO|
+        |----------|
+        '''
+        self.preview_Frame = tk.LabelFrame(self.frame_Main_Right)
+        self.preview_Frame.pack(fill='both', side='bottom', expand=True, anchor='sw')
+        self.preview_Label = ttk.Label(self.preview_Frame)
         self.preview_Label.pack(fill='x', side='bottom')
 
     def pick_folder_onedrive(self):
@@ -176,6 +202,27 @@ class MainApplication(tk.Frame):
             i = i + 1
         return i
 
+    def copy_Files(self, source, destination):
+        try:
+            shutil.copyfile(source, destination)
+            print("File copied successfully.")
+
+        # If source and destination are same
+        except shutil.SameFileError:
+            print("Source and destination represents the same file.")
+
+        # If destination is a directory.
+        except IsADirectoryError:
+            print("Destination is a directory.")
+
+        # If there is any permission issue
+        except PermissionError:
+            print("Permission denied.")
+
+        # For other errors
+        except:
+            print("Error occurred while copying file.")
+
     def proceed_Files(self):
         return
 
@@ -195,7 +242,6 @@ class MainApplication(tk.Frame):
 
         self.preview_Label.config(image=img, text=img_path + chr(10) + str(record[1]))
         self.preview_Label.image = img
-
 
 
 def compress_images(directory=False, quality=30):
