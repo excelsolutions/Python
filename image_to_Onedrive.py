@@ -14,7 +14,7 @@ from openpyxl.workbook import Workbook
 from openpyxl import load_workbook
 import tkinter.ttk as ttk
 from tkinter import filedialog
-import shutil  # to files copy
+from shutil import copy2, SameFileError  # to files copy
 
 
 class MainApplication(tk.Frame):
@@ -63,7 +63,7 @@ class MainApplication(tk.Frame):
 
         self.btn_Folder = tk.Button(self.frame_Folder, text='Pick folder', command=self.pick_folder, font=font_main)
         self.btn_Folder.grid(row=0, column=1)
-        self.btn_Folder = tk.Button(self.frame_Folder, text='Run', command=self.proceed_Files, font=font_main)
+        self.btn_Folder = tk.Button(self.frame_Folder, text='Run', command=self.proceed_files, font=font_main)
         self.btn_Folder.grid(row=0, column=2)
         # FRAME ONEDRIVE FOLDER
         self.frame_Onedrive_Folder = tk.LabelFrame(self.frame_Main_Top, text="Path to Onedrive folder")
@@ -206,13 +206,12 @@ class MainApplication(tk.Frame):
             i = i + 1
         return i
 
-    def copy_Files(self, source, destination):
-        try:
-            shutil.copyfile(source, destination)
-            print("File copied successfully.")
+    def copy_files(self, source, destination):
 
+        try:
+            copy2(source, destination)
         # If source and destination are same
-        except shutil.SameFileError:
+        except SameFileError:
             print("Source and destination represents the same file.")
 
         # If destination is a directory.
@@ -227,11 +226,14 @@ class MainApplication(tk.Frame):
         except:
             print("Error occurred while copying file.")
 
-    def proceed_Files(self):
-        path = self.txt_Folder.get()
-        without_extra_slash = os.path.normpath(path)
-        folder = os.path.basename(without_extra_slash)
+    def proceed_files(self):
+        self.files_to_onedrive()
 
+    def files_to_onedrive(self):
+        path_source = self.txt_Folder.get()
+        path_destination = self.txt_Onedrive_Folder.get()
+        without_extra_slash = os.path.normpath(path_source)
+        folder = os.path.basename(without_extra_slash)
         wb_images = Workbook()
         ws = wb_images.active
         ws.title = "List of images"
@@ -240,11 +242,31 @@ class MainApplication(tk.Frame):
         ws['C1'].value = 'Resolution'
         ws['D1'].value = 'Compression lvl'
         ws['E1'].value = 'Size'
+        ws['F1'].value = 'Copy status'
+        ws['G1'].value = 'New filename'
+
+        i = 2
         for item in self.table_Files.get_children():
             item = self.table_Files.item(item)
             record = item['values']
-            filename = os.path.join(path, (record[1]))
-            new_filename = os.path.join(path, ('zmn' + record[1]))
+            filename_source = os.path.join(path_source, (record[1]))
+            new_filename = ('zmn_' + record[1])
+            filename_destination = os.path.join(path_destination)
+            self.copy_files(os.path.join(r"P:\ZDJĘCIA\2014-03-30", record[1]),
+                            os.path.join(self.txt_Onedrive_Folder.get(), new_filename))
+            ws['A' + str(i)].value = str(record[0]) + "."
+            ws['B' + str(i)].value = record[1]
+            ws['C' + str(i)].value = record[2]
+            ws['D' + str(i)].value = record[3]
+            ws['E' + str(i)].value = record[4]
+            ws['F' + str(i)].value = "ok"
+            ws['G' + str(i)].value = new_filename
+            i = i + 1
+        wb_images.save(filename=os.path.join(path_source, (folder + ".xlsx")))
+
+    def compressing_files(self):
+        self.files_to_onedrive()
+
     def item_selected(self, event):
         for selected_item in self.table_Files.selection():
             item = self.table_Files.item(selected_item)
@@ -287,12 +309,10 @@ class MainApplication(tk.Frame):
 
             i = i + 1
 
-
         wb_images.save(filename=os.path.join(path, (folder + ".xlsx")))
 
 
-
-def compress_images(directory=False, quality=30):
+def OLD_compress_images(directory=False, quality=30):
     # 1. If there is a directory then change into it, else perform the next operations inside of the
     # current working directory:
     if directory:
@@ -315,14 +335,14 @@ def compress_images(directory=False, quality=30):
         img.save("Kopia_" + image, optimize=True, quality=quality)
 
 
-def compress_one_image(directory=False, quality=10):
+def OLD_compress_one_image(directory=False, quality=10):
     if directory:
         os.chdir(os.path.dirname(os.path.abspath(directory)))
     img = Image.open(directory)
     img.save('_' + os.path.basename(directory), optimize=True, quality=quality)
 
 
-def images_change_resolution(directory=False, quality=50, resize=0.8, png_jpg_conv=False, file=None):
+def OLD_images_change_resolution(directory=False, quality=50, resize=0.8, png_jpg_conv=False, file=None):
     if directory:
         os.chdir(directory)
 
@@ -356,7 +376,7 @@ def images_change_resolution(directory=False, quality=50, resize=0.8, png_jpg_co
         img.save(filename, optimize=True, quality=quality)
 
 
-def image_change_resolution(file=False, quality=50, resize=0.5, png_jpg_conv=False):
+def OLD_image_change_resolution(file=False, quality=50, resize=0.5, png_jpg_conv=False):
     if file:
         os.chdir(os.path.dirname(os.path.abspath(file)))
     img = Image.open(file)
@@ -380,7 +400,7 @@ def image_change_resolution(file=False, quality=50, resize=0.5, png_jpg_conv=Fal
     print('Height: ', old_height, '-->', height)
 
 
-def image_info(directory=False):
+def OLD_image_info(directory=False):
     if directory:
         os.chdir(os.path.dirname(os.path.abspath(directory)))
     img = Image.open(directory)
