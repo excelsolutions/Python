@@ -38,13 +38,13 @@ class MainApplication(tk.Frame):
         path_onedrive_folder = self.sh_settings['B2'].value
 
         # MAIN FRAMES
-        self.frame_Main_Top = tk.Frame(root, background="yellow")
-        self.frame_Main_Top.pack(side='top', anchor='nw', expand=True)
-        self.frame_Main_Bottom = tk.Frame(root, background="blue")
-        self.frame_Main_Bottom.pack(side='bottom', anchor='nw')
+        self.frame_Main_Top = tk.LabelFrame(root, text='Settings', width=root.winfo_width())
+        self.frame_Main_Top.pack(side='top', anchor='nw', expand=False)
+        self.frame_Main_Bottom = tk.LabelFrame(root, text="Files")
+        self.frame_Main_Bottom.pack(side='top', anchor='nw', expand=False)
         self.frame_Main_Right = tk.Frame(self.frame_Main_Bottom)
         self.frame_Main_Right.pack(side='right', fill='both', anchor='ne')
-        self.frame_Folders = tk.Frame(self.frame_Main_Top, background="green")
+        self.frame_Folders = tk.Frame(self.frame_Main_Top)
         self.frame_Folders.grid(row=0, column=0)
 
         self.lbl_Title = tk.Label(self.frame_Main_Top, text="Pictures to Onedrive", bg='yellow', font=font_main)
@@ -66,7 +66,7 @@ class MainApplication(tk.Frame):
         self.btn_Folder = tk.Button(self.frame_Folder, text='Run', command=self.proceed_Files, font=font_main)
         self.btn_Folder.grid(row=0, column=2)
         # FRAME ONEDRIVE FOLDER
-        self.frame_Onedrive_Folder = tk.LabelFrame(self.frame_Main_Top, text="Path to Onedrive folder", background="black")
+        self.frame_Onedrive_Folder = tk.LabelFrame(self.frame_Main_Top, text="Path to Onedrive folder")
         self.frame_Onedrive_Folder.grid(row=2, column=0)
         self.txt_Onedrive_Folder = tk.Entry(self.frame_Onedrive_Folder, font=font_main, width=60)
         self.txt_Onedrive_Folder.grid(row=0, column=0)
@@ -101,11 +101,11 @@ class MainApplication(tk.Frame):
 
         # TABLE Treeview
         # scrollbar
-        self.frame_Treeview = tk.LabelFrame(self.frame_Main_Bottom, text='Files')
+        self.frame_Treeview = tk.LabelFrame(self.frame_Main_Bottom)
         self.frame_Treeview.pack(side='left', anchor='ne')
         self.scroll_y = ttk.Scrollbar(self.frame_Treeview)
         self.scroll_y.pack(side='right', fill='y')
-        self.table_Files = ttk.Treeview(self.frame_Treeview, yscrollcommand=self.scroll_y.set)
+        self.table_Files = ttk.Treeview(self.frame_Treeview, yscrollcommand=self.scroll_y.set, height=200)
 
         self.scroll_y.config(command=self.table_Files.yview)
         self.table_Files['columns'] = ('No', 'Name of file', 'Width x Height', 'Compression level', 'File size')
@@ -139,12 +139,10 @@ class MainApplication(tk.Frame):
         |          |
         |----------|
         '''
-        self.action_Frame = tk.LabelFrame(self.frame_Main_Top, text="Features")
+        self.action_Frame = tk.LabelFrame(self.frame_Main_Top, text="Prefix added to filename")
         self.action_Frame.grid(row=1, column=3)
-        self.lbl_Prefix = tk.Label(self.action_Frame, text='Prefix added to filename')
-        self.lbl_Prefix.grid(row=0, column=0)
         self.txt_Prefix = tk.Entry(self.action_Frame, font=font_main, width=20)
-        self.txt_Prefix.grid(row=1, column=0)
+        self.txt_Prefix.grid(row=0, column=0)
 
         # Picture preview
         '''
@@ -157,6 +155,7 @@ class MainApplication(tk.Frame):
         self.preview_Frame.pack(fill='both', side='bottom', expand=True, anchor='sw')
         self.preview_Label = ttk.Label(self.preview_Frame, width=root.winfo_width())
         self.preview_Label.pack(fill='both', side='bottom')
+        self.build_excel()
 
     def pick_folder_onedrive(self):
         file_path = os.getcwd()
@@ -229,8 +228,23 @@ class MainApplication(tk.Frame):
             print("Error occurred while copying file.")
 
     def proceed_Files(self):
-        return
+        path = self.txt_Folder.get()
+        without_extra_slash = os.path.normpath(path)
+        folder = os.path.basename(without_extra_slash)
 
+        wb_images = Workbook()
+        ws = wb_images.active
+        ws.title = "List of images"
+        ws['A1'].value = 'LP.'
+        ws['B1'].value = 'Filename'
+        ws['C1'].value = 'Resolution'
+        ws['D1'].value = 'Compression lvl'
+        ws['E1'].value = 'Size'
+        for item in self.table_Files.get_children():
+            item = self.table_Files.item(item)
+            record = item['values']
+            filename = os.path.join(path, (record[1]))
+            new_filename = os.path.join(path, ('zmn' + record[1]))
     def item_selected(self, event):
         for selected_item in self.table_Files.selection():
             item = self.table_Files.item(selected_item)
@@ -248,6 +262,34 @@ class MainApplication(tk.Frame):
 
         self.preview_Label.config(image=img, text=img_path + chr(10) + str(record[1]))
         self.preview_Label.image = img
+
+    def build_excel(self):
+        wb_images = Workbook()
+        ws = wb_images.active
+        ws.title = "List of images"
+        path = self.txt_Folder.get()
+        without_extra_slash = os.path.normpath(path)
+        folder = os.path.basename(without_extra_slash)
+        i = 2
+        ws['A1'].value = 'LP.'
+        ws['B1'].value = 'Filename'
+        ws['C1'].value = 'Resolution'
+        ws['D1'].value = 'Compression lvl'
+        ws['E1'].value = 'Size'
+        for item in self.table_Files.get_children():
+            item = self.table_Files.item(item)
+            record = item['values']
+            ws['A' + str(i)].value = str(record[0]) + "."
+            ws['B' + str(i)].value = record[1]
+            ws['C' + str(i)].value = record[2]
+            ws['D' + str(i)].value = record[3]
+            ws['E' + str(i)].value = record[4]
+
+            i = i + 1
+
+
+        wb_images.save(filename=os.path.join(path, (folder + ".xlsx")))
+
 
 
 def compress_images(directory=False, quality=30):
