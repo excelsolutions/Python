@@ -142,7 +142,9 @@ class MainApplication(tk.Frame):
         self.action_Frame = tk.LabelFrame(self.frame_Main_Top, text="Prefix added to filename")
         self.action_Frame.grid(row=1, column=3)
         self.txt_Prefix = tk.Entry(self.action_Frame, font=font_main, width=20)
+        self.txt_Prefix.insert(0, "zmn_")
         self.txt_Prefix.grid(row=0, column=0)
+
 
         # Picture preview
         '''
@@ -193,7 +195,7 @@ class MainApplication(tk.Frame):
                                     iid=i,
                                     text='',
                                     values=(i, image, '{} x {}'.format(width, height), 'NONE',
-                                            '{:0.2f} MB'.format(
+                                            '{:0.2f}'.format(
                                                 os.path.getsize(os.path.join(folder_path, image)) / 1024 / 1024, 2)))
 
     def files_counter(self, path, extensions):
@@ -227,7 +229,40 @@ class MainApplication(tk.Frame):
             print("Error occurred while copying file.")
 
     def proceed_files(self):
+
+        path_source = self.txt_Folder.get()
+        path_destination = self.txt_Onedrive_Folder.get()
+        without_extra_slash = os.path.normpath(path_source)
+        folder = os.path.basename(without_extra_slash)
         self.files_to_onedrive()
+        wb_images = load_workbook(os.path.join(path_source, folder + ".xlsx"))
+        ws = wb_images.active
+        ws['H1'].value = 'New file size'
+        ws['I1'].value = 'New Resolution'
+        ws['J1'].value = 'New compression lvl'
+        ws['K1'].value = '% of space saving'
+        i = 2
+        # 1. Copying original files to Onedrive
+
+        # 2. Compressing and resize source files
+        for item in self.table_Files.get_children():
+            item = self.table_Files.item(item)
+            record = item['values']
+
+
+            self.compressing_files(self.txt_Folder.get(), self.txt_Onedrive_Folder.get(),
+                                   self.txt_Prefix.get(), record[1])
+            img = PIL.Image.open(os.path.join(self.txt_Onedrive_Folder.get(), self.txt_Prefix.get() + record[1]))
+            width, height = img.size
+            ws['H' + str(i)].value = '{:0.2f}'.format(os.path.getsize(
+            os.path.join(self.txt_Onedrive_Folder.get(), self.txt_Prefix.get() + record[1])) / 1024 / 1024, 2)
+
+            ws['I' + str(i)].value = '{} x {}'.format(width, height)
+            ws['J' + str(i)].value = '50%'
+            ws['K' + str(i)].value = '{:0.2f}'.format(float(ws['H' + str(i)].value) / float(ws['E' + str(i)].value)-1)
+            i = i +1
+        wb_images.save(filename=os.path.join(path_source, (folder + ".xlsx")))
+
 
     def files_to_onedrive(self):
         path_source = self.txt_Folder.get()
@@ -250,7 +285,7 @@ class MainApplication(tk.Frame):
             item = self.table_Files.item(item)
             record = item['values']
             filename_source = os.path.join(path_source, (record[1]))
-            new_filename = ('zmn_' + record[1])
+            new_filename = (self.txt_Prefix.get() + record[1])
             filename_destination = os.path.join(path_destination)
             self.copy_files(os.path.join(r"P:\ZDJĘCIA\2014-03-30", record[1]),
                             os.path.join(self.txt_Onedrive_Folder.get(), new_filename))
@@ -264,8 +299,29 @@ class MainApplication(tk.Frame):
             i = i + 1
         wb_images.save(filename=os.path.join(path_source, (folder + ".xlsx")))
 
-    def compressing_files(self):
-        self.files_to_onedrive()
+    def compressing_files(self, source_folder, dest_folder, prefix, file_name, quality=50, resize=0.5, png_jpg_conv=False):
+
+        source_file = os.path.join(source_folder, file_name)
+        dest_file = os.path.join(dest_folder, prefix + file_name)
+        img = Image.open(source_file)
+        width, height = img.size
+        old_width, old_height = img.size
+        width = math.floor(width * resize)
+        height = math.floor(height * resize)
+        img = img.resize((width, height))
+        extension = os.path.splitext(file_name)[1]
+        # filename = os.path.basename(file_name)
+        if (extension == '.png' and png_jpg_conv == True):
+            img = img.convert('RGB')
+            quality = 80
+            file_name = file_name.replace('.png', '_zmn' + '.jpg')
+        # else:
+        #    filename = filename.replace(extension, '_zmn' + extension) # bez "zmn"
+        img.save(dest_file, optimize=True, quality=quality)
+
+        print('Resize img completed: [ratio = ' + str(resize) + ']')
+        print('Width: ', old_width, ' -->', width)
+        print('Height: ', old_height, '-->', height)
 
     def item_selected(self, event):
         for selected_item in self.table_Files.selection():
